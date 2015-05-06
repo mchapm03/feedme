@@ -1,0 +1,6 @@
+git add .
+git commit -m "$*"
+git checkout master
+git merge -X theirs gh-pages
+git push origin gh-pages
+git checkout gh-pages

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>FeedMe</title>
+    <link rel='shortcut icon' href='http://tuftsdev.github.io/comp20-spring2015-team21/Assets/favicon.ico' type='image/x-icon'/ >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <!--<link href="assets/css/bootstrap-responsive.css" rel="stylesheet">-->
+    <link href="feedme.css" rel="stylesheet" media="screen">
+        <!-- Google sign-in API -->
+    <meta name="google-signin-client_id" content="91681303821-mete37028scfloarkshq95isebnupoat.apps.googleusercontent.com">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+ 
+    <script>
+    function init(){
+      
+    }
+    function onSignIn(googleUser) {
+      var profile = googleUser.getBasicProfile();
+      isRegistered();
+    }
+
+    function isRegistered() {
+      var request =  new XMLHttpRequest();
+      var url = 'http://feedme-comp20.herokuapp.com/registered';
+      var auth2 = gapi.auth2.getAuthInstance();
+      if (auth2.isSignedIn.get()) {
+        var profile = auth2.currentUser.get().getBasicProfile();
+        param = ("googleid=" + profile.getId());
+        request.open("POST", url, true);
+        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        request.send(param);
+        request.onreadystatechange = function() {
+          if(request.readyState == 4 && request.status == 200) {
+            if (request.responseText == "NotRegistered") {
+              window.location.replace('register.html');
+            } else {
+              return request.responseText;
+            }
+          }
+        };
+      } else {
+        alert("You must log in before adding a food.");
+        window.location.replace('login.html');
+      }
+    }
+    function logout() {
+    var auth2 = gapi.auth2.getAuthInstance();
+    auth2.signOut().then(function () {
+      window.location.replace('index.html');
+    });
+  }
+    </script>
+  </head>
+
+  <body onload=init()>
+
+  	<div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="index.html"><img src="Assets/Logo.png" alt="logo" width="230"/></a>
+          <div class="nav-collapse collapse">
+            <ul class="nav pull-right">
+              <li class="dropdown">
+                <a href="#" class=" active dropdown-toggle" data-toggle="dropdown">Account <b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                  <li><a href="addfood.html">Add Food</a></li>
+                  <li><a href="edit_foods.html"> Edit Current Foods</a></li>
+                  <li><a href="index.html" onclick=logout()>Logout </a></li>
+                </ul>
+              </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+    <div class="g-signin2 hide-but" data-onsuccess="onSignIn"></div>
+
+    <div class="container-fluid">
+      <div class="account-ops"/>
+        <h1 class="pageTitle"> Account Options </h1><br>
+        <center><a href="addfood.html" class="btn btn-large btn-primary">Add Food</a><br><br>
+        <a href="edit_foods.html" class="btn btn-large btn-primary">Edit Current Foods</a></center>
+      </div>
+
+    </div>
+
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+  </body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>FeedMe</title>
+            <link rel='shortcut icon' href='http://tuftsdev.github.io/comp20-spring2015-team21/Assets/favicon.ico' type='image/x-icon'/ >
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <!--<link href="assets/css/bootstrap-responsive.css" rel="stylesheet">-->
+    <link href="feedme.css" rel="stylesheet" media="screen">
+    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=true&amp;libraries=places"></script>
+    <meta name="google-signin-client_id" content="91681303821-mete37028scfloarkshq95isebnupoat.apps.googleusercontent.com">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script type="text/javascript">
+    
+    function onSignIn(googleUser) {
+      
+        $('#login_but').hide();
+        $('#logout_but').show();
+    }
+    
+    function initialize() {
+      $(document).keydown(function(e){
+      switch(e.which){
+        case 37:
+          prevpic();
+        break;
+        case 39:
+          nextpic();
+        break;
+        default:
+        return;
+      }
+      e.preventDefault();
+    });
+      $('#logout_but').hide();
+      
+      usrLat = 42.24;
+      usrLng = 71.78;
+      $('#clearbtn').hide();
+      foodlist = [];
+      foodlist[0]='';
+      //foodlist = [{"picref":"pastasample.jpeg","foodname":"pasta","price":3,"lat":42,"lng":70,"phone":"32901011"},{"picref":"img/food_ex.jpeg","foodname":"example food","price":16,"lat":42.1,"lng":70.8,"phone":"83739282"}];
+      picnum=0;
+      //getpic();
+document.getElementById("main_food").innerHTML="<div><h1>Loading Foods, thank you for your patience!</h1><img class='img-polaroid' src='img/food_ex.jpg' alt='example food' /></div></div></div>";
+      if (navigator.geolocation) { // the navigator.geolocation object is supported on your browser
+          navigator.geolocation.getCurrentPosition(function(position) {
+            usrLat = position.coords.latitude;
+            usrLng = position.coords.longitude;
+            sendloc();
+          },
+          function (error)
+          {
+            if (error.code = error.PERMISSION_DENIED)
+                sendloc();
+          });
+        }
+        else
+        {
+          sendloc();
+        }
+    }
+    function sendloc(){
+      var request =  new XMLHttpRequest();
+      var url = 'http://feedme-comp20.herokuapp.com/foods?filter=off&lat='+usrLat+'&lng='+usrLng;
+      request.open("GET", url, true);
+      request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+      request.send();
+      request.onreadystatechange = function(){
+        if(request.readyState == 4 && request.status == 200){
+          foodlist = JSON.parse(request.responseText);
+          picnum = 0;
+          getpic();
+        }
+      };
+    }
+    function getpic(){
+      if(foodlist.length <=1){
+        $("#nextpic").hide();
+        $("#prevpic").hide();
+      }else{
+        $("#nextpic").show();
+        $("#prevpic").show();
+      }
+      if(foodlist[0]==undefined){
+document.getElementById("main_food").innerHTML="<div class='active item'><h1>We are sorry, but there are no foods in your area right now. Please check back soon!</h1><img class='img-polaroid' src='img/food_ex.jpg' alt='example food' />";
+      }else{
+        i = picnum;
+        href=foodlist[i].picref;
+        name=foodlist[i].foodname;
+        price=foodlist[i].price;
+        rest_name=foodlist[i].rest_name;
+        lat=foodlist[i].rest_lat;
+        lng=foodlist[i].rest_lng;
+        if(lat!=undefined && lng!=undefined){
+          dist=calcDist(lat, lng).toFixed(3);
+        }else{dist='';}
+        tags=foodlist[i].foodtags;
+        phone=foodlist[i].phone;
+        ghub=foodlist[i].ghub;
+newfoods="<div class=item><img class='img-polaroid' src="+href+" alt="+name+" /><p><span class='food_name'>"+name+"</span><span class='food_rest'>"+rest_name+"</span></p><p><span class='food_price'>$"+price+"</span><span class='food_dist'>"+dist+" miles</span></p></div><div class='feed_me'><a href='#foodModal' role='button' class='btn-large btn-primary' data-toggle='modal'>FEED ME!</a></div></div><div id='foodModal' class='modal hide fade' tabindex='-1' role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'><div class='modal-header'><button type='button' class='close' data-dismiss='modal' aria-hidden='true'>X</button><h3 id='myModalLabel'>Buy this dish:</h3></div><div class='modal-body'><p>Food name: "+name+"</p><p>Price: $"+price+"</p><h3>To Order:</h3><p>Call: "+phone+"</p><p>Or visit<a href='http://"+ghub+"'> Grubhub.com</a>.</p></div><div class='modal-footer'><button class='btn' data-dismiss='modal' aria-hidden='true'>Close</button></div></div>";
+    document.getElementById("main_food").innerHTML=newfoods;
+   }
+  }
+    function calcDist(Lat1, Lng1){
+      R = 6371;
+      x1 = toRad(Lat1);
+      x2 = toRad(usrLat);
+      y1 = toRad(usrLng - Lng1);
+      y2 = toRad(usrLat - Lat1);
+      a = Math.sin(y2/2) * Math.sin(y2/2) + Math.cos(x1) * Math.cos(x2) * Math.sin(y1/2) * Math.sin(y1/2);
+      c = 2 * Math.atan(Math.sqrt(a), Math.sqrt(1-a));
+      return ((R * c)/ 1.60934);
+    }
+    function toRad(x) {
+        return x * Math.PI / 180;
+    }
+    function nextpic(){
+      picnum = (picnum + 1) % foodlist.length;
+      getpic();
+    }
+    function prevpic(){
+      if(picnum==0){
+        picnum = foodlist.length -1;
+      }else{
+        picnum -= 1;
+      }
+      getpic();
+    }
+
+    function filter(){
+      var request =  new XMLHttpRequest();
+      var dist = $('input[name="distance"]:checked').val();
+      var flav = document.getElementById('flavor').value
+      var url = 'http://feedme-comp20.herokuapp.com/foods?filter=on&lat='+usrLat+'&lng='+usrLng+'&distance='+dist+'&flavor='+flav;
+//      console.log(url);
+      request.open("GET", url, true);
+      request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+      request.send();
+      request.onreadystatechange = function(){
+        if(request.readyState == 4 && request.status == 200){
+          foodlist=[];
+          picnum=0;
+          foodlist = JSON.parse(request.responseText);
+          getpic();
+        }
+      };
+    }
+        function logout() {
+    var auth2 = gapi.auth2.getAuthInstance();
+    auth2.signOut().then(function () {
+
+        $('#login_but').show();
+        $('#logout_but').hide();
+            });
+  }
+    </script>
+  </head>
+
+  <body onload=initialize()>
+  <div class="g-signin2 hide-but" data-onsuccess="onSignIn"></div>
+
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="index.html"><img src="Assets/Logo.png" alt="logo" width="230"/></a>
+          <div class="nav-collapse collapse">
+            <ul class="nav pull-right">
+                <li><a class="menu" id="login_but"href="login.html">Login </a></li>
+                <li><a href="#" class=" active dropdown-toggle" id="logout_but"data-toggle="dropdown">Account <b class="caret"></b></a>
+                  <ul class="dropdown-menu" id="logout_but">
+                  <li><a href="addfood.html">Add Food</a></li>
+                  <li><a href="edit_foods.html"> Edit Current Foods</a></li>
+                  <li><a href="#" onclick=logout()>Logout </a></li>
+                </ul></li>
+                
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid-body">
+      <div class="filter form-inline" id="filter_form" >
+        <input type="hidden" name="filter" value="on"/>
+        <p>Food within:
+          <label class="radio" id="distance">
+            <input type="radio" name="distance" value="10" checked> 10 miles
+        </label>
+          <label class="radio" >
+            <input type="radio" name="distance" value="5"> 5 miles
+        </label>
+        <label class="radio">
+            <input type="radio" name="distance" value="1"> 1 mile&nbsp;&nbsp;&nbsp;
+        </label>
+        <label>Flavor:</label>
+        <select id="flavor" name="flavor">
+            <option value="spicy">Spicy</option>
+          <option value="sweet">Sweet</option>
+          <option value="vegetarian">Vegetarian</option>
+            <option value="savory">Savory</option>
+            <option value="fruity">Fruity</option>
+            <option value="vegan">Vegan</option>
+
+            <option value="any">Any</option>
+        </select>
+        <input onclick=filter() type="submit" value="Filter" class="btn" />
+      </p>
+
+    </div>
+    <button onclick=clearfilter() class="btn" id="clearbtn">Clear Filter</button>
+    <div class="main_img" id="main_food">
+  </div>
+  <!-- Carousel nav -->
+  <div class="controls">
+    <a class="carousel-control left" id="prevpic" onclick=prevpic() >&lsaquo;</a>
+    <a class="carousel-control right" id="nextpic" onclick=nextpic() >&rsaquo;</a>
+  </div>
+</div>
+    </div>
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+  </body>
+</html>

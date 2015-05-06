@@ -1,0 +1,16 @@
+To do:
+-write javascript for every button:
+	-filter on main page
+	-
+-verify login info
+-make modal if someone wants to get food, and code what to do if user decides to "order"
+-Databases:
+	-restaurants
+	-login information (with restaurants?)
+	-all foods
+	-food associated with each restaurant (or just iterate over all foods?)
+
+	-create, define how to insert, update and delete from these databases
+
+-create algorithm for how pictures are shown
+-code changing from one photo to the next

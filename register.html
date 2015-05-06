@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>FeedMe</title>
+<link rel='shortcut icon' href='http://tuftsdev.github.io/comp20-spring2015-team21/Assets/favicon.ico' type='image/x-icon'/ >    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <!-- Google signin API -->
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="91681303821-mete37028scfloarkshq95isebnupoat.apps.googleusercontent.com">
+    <!--<link href="assets/css/bootstrap-responsive.css" rel="stylesheet">-->
+    <link href="feedme.css" rel="stylesheet" media="screen">
+    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=true"></script>
+    <!--JQuery form plug in-->
+    <script src="http://malsup.github.com/jquery.form.js"></script> 
+    <script>
+
+      var geocoder;
+      var map;
+      var auth2;
+      var email;
+      
+      function initialize() {
+     
+
+        geocoder = new google.maps.Geocoder();
+        var latlng = new google.maps.LatLng(42.410466, -71.119944);
+        var mapOptions = {
+          zoom: 8,
+          center: latlng
+        }
+        map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+      }
+
+      function onSignIn(googleUser) {
+        var request =  new XMLHttpRequest();
+        var url = 'http://feedme-comp20.herokuapp.com/registered';
+        var profile = googleUser.getBasicProfile();
+        email = profile.getEmail();
+        param = ("googleid=" + profile.getId());
+        request.open("POST", url, true);
+        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        request.send(param);
+        request.onreadystatechange = function() {
+          if(request.readyState == 4 && request.status == 200) {
+            if (request.responseText == "Error") {
+            } else if (request.responseText != "NotRegistered") {
+              document.getElementById("alreadyRegisteredWarning").innerHTML = "Warning: You already have a restaurant registered with this Google account. Registering again will overwrite your original registration."
+            }
+          }
+        };
+      }
+
+    function logout() {
+    var auth2 = gapi.auth2.getAuthInstance();
+    auth2.signOut().then(function () {
+      window.location.replace('index.html');
+    });
+  }
+
+      function codeAddress() {
+        var address = document.getElementById("address").value;
+        geocoder.geocode( { 'address': address}, function(results, status) {
+          if (status == google.maps.GeocoderStatus.OK) {
+            map.setCenter(results[0].geometry.location);
+            restLatLng = results[0].geometry.location;
+            document.getElementById('restlat').value = restLatLng.lat();
+            document.getElementById('restlng').value = restLatLng.lng();
+            var marker = new google.maps.Marker({
+              map: map,
+              position: results[0].geometry.location
+            });
+          } else {
+            alert("Geocode was not successful for the following reason: " + status);
+          }
+        });
+      }
+
+      function formsubmit() {
+        var auth2 = gapi.auth2.getAuthInstance();
+        if (auth2.isSignedIn.get() == false) {
+          alert("You must sign in with Google before registering.");
+          window.location.replace("login.html");
+        }
+        var request =  new XMLHttpRequest();
+        var url = 'http://feedme-comp20.herokuapp.com/register';
+        var param = "googleid=" + auth2.currentUser.get().getBasicProfile().getId() + "&name=" + document.getElementById('restname').value + "&phone=" +document.getElementById('phone').value+"&grubhuburl="+document.getElementById('ghub').value+"&lat="+document.getElementById('restlat').value+"&lng="+document.getElementById('restlng').value+"&email="+email;
+        request.open("POST", url, true);
+
+        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        request.send(param);
+        request.onreadystatechange = function(){
+          if(request.readyState == 4 && request.status == 200){
+            window.location.replace('addfood.html');
+          }
+        };
+      }
+
+    </script>
+  </head>
+
+  <body onload="initialize()" >
+
+  	<div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="index.html"><img src="Assets/Logo.png" alt="logo" width="230"/></a>
+          <div class="nav-collapse collapse">
+            <ul class="nav pull-right">
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Account <b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                  <li><a href="#" onclick=logout()>Sign out</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid content">
+      <h1 class="regTitle">Register Your Restaurant</h1>
+      <div class="g-signin2 hide-but" data-onsuccess="onSignIn"></div>
+      <p class="nameInput"> Name:  <input type= "text" id="restname" Placeholder="Restaurant Name" required/> </p>
+      <p class="phoneInput"> Phone Number:  <input type= "tel" id="phone" Placeholder="(XXX)XXX-XXXX" name="phone" required/> </p>
+      <p class="grubhubInput"> Grubhub URL:  <input type= "text" id="ghub" Placeholder="grubhub.com/rest_name" name="ghub" /> </p>
+      <p class="location">Location:
+        <input id="address" type="textbox" value="375 Boston Ave, Medford MA 02155">
+        <input type="button" class="btn" value="Verify Your Address" onclick="codeAddress()">
+        <input type="hidden" id="restlat" value="none"/>
+        <input type="hidden" id="restlng" value="none"/>
+      </p>
+      <div id="map-canvas" style="width: 600px; height: 400px;"></div><br>
+      <p id="alreadyRegisteredWarning"></p>
+      <button onclick=formsubmit() class="regButton">Register</button>
+    </div>
+
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+  </body>
+</html>

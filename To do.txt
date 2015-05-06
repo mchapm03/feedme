@@ -1,0 +1,57 @@
+To do:
+-write javascript for every button:
+	-filter on main page
+	-
+-verify login info
+-make modal if someone wants to get food, and code what to do if user decides to "order"
+-Databases:
+	-restaurants
+	-login information (with restaurants?)
+	-all foods
+	-food associated with each restaurant (or just iterate over all foods?)
+
+	-create, define how to insert, update and delete from these databases
+
+-create algorithm for how pictures are shown
+-code changing from one photo to the next
+
+
+
+Collections:
+-app.get('/foods'.....:
+        href=data[i].picref;
+        name=data[i].foodname;
+        price=data[i].price;
+        rest=data[i].rest;
+        lat=data[i].lat;
+        lng=data[i].lng;
+        tags=data[i].foodtags;
+        phone=data[i].phone;
+        ghub=data[i].ghub;
+
+ -app.post('/signin'
+ 		username, password
+ -app.post('/restaurant'
+ 		name
+ 		username
+ 		password
+ 		phone
+ 		email
+ 		github page
+ 		lat
+ 		lng
+ -app.post('/addfood'
+ 		name
+ 		image??????
+ 		price
+ 		tags
+ 		restaurant (join with rest info)
+ app.post('/register'
+  		name
+ 		username
+ 		password
+ 		phone
+ 		email
+ 		github page
+ 		lat
+ 		lng

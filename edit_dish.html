@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>FeedMe</title>
+    <link rel='shortcut icon' href='http://tuftsdev.github.io/comp20-spring2015-team21/Assets/favicon.ico' type='image/x-icon'/ >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <!-- Google sign-in API -->
+    <meta name="google-signin-client_id" content="91681303821-mete37028scfloarkshq95isebnupoat.apps.googleusercontent.com">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <!--<link href="assets/css/bootstrap-responsive.css" rel="stylesheet">-->
+    <link href="feedme.css" rel="stylesheet" media="screen">
+    <script>
+
+      var rest_name;
+
+      function onSignIn(googleUser) {
+        var profile = googleUser.getBasicProfile();
+
+        isRegistered();
+      }
+
+    function isRegistered() {
+      var request =  new XMLHttpRequest();
+      var url = 'http://feedme-comp20.herokuapp.com/registered';
+      var auth2 = gapi.auth2.getAuthInstance();
+      if (auth2.isSignedIn.get()) {
+        var profile = auth2.currentUser.get().getBasicProfile();
+        param = ("googleid=" + profile.getId());
+        request.open("POST", url, true);
+        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        request.send(param);
+        request.onreadystatechange = function() {
+          if(request.readyState == 4 && request.status == 200) {
+            if (request.responseText == "NotRegistered") {
+              alert("You must register before adding a food.");
+              window.location.replace('register.html');
+            } else if (request.responseText == "Error") {
+              return request.responseText;
+            } else {
+              rest_name = request.responseText;
+              return request.responseText;
+            }
+          }
+        };
+      } else {
+        alert("You must log in before adding a food.");
+        window.location.replace('login.html');
+      }
+    }
+
+    function init() {
+      
+        // document.getElementById('rest').value=localStorage.feedme_restname;
+        var request = new XMLHttpRequest;
+        dish_id = localStorage.food_id;
+        localStorage.removeItem("food_id");
+        if (!dish_id) {
+          window.location.replace("edit_foods.html");
+        }
+        var url = 'http://feedme-comp20.herokuapp.com/edit_dish?_id=' + dish_id;
+        request.open("GET", url, true);
+        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        request.send();
+        request.onreadystatechange = function(){
+          if(request.readyState == 4 && request.status == 200){
+            dish = JSON.parse(request.responseText)[0];
+            document.getElementById("dishname").value = dish.foodname;
+            document.getElementById("dishprice").value = dish.price.toFixed(2);
+            document.getElementById("picref").value = dish.picref;
+
+            if(dish.savory == "true") {
+              document.getElementById("Savory").checked = true;
+            }          
+            if(dish.sweet == "true") {
+              document.getElementById("Sweet").checked = true;
+            }   
+            if(dish.spicy == "true") {
+              document.getElementById("Spicy").checked = true;
+            }   
+            if(dish.fruity == "true") {
+              document.getElementById("Fruity").checked = true;
+            }   
+            if(dish.vegetarian == "true") {
+              document.getElementById("Vegetarian").checked = true;
+            }   
+            if(dish.vegan == "true") {
+              document.getElementById("Vegan").checked = true;
+            }   
+          }
+        }    
+      
+    }
+
+    function logout() {
+    var auth2 = gapi.auth2.getAuthInstance();
+    auth2.signOut().then(function () {
+      window.location.pathname='comp20-spring2015-team21';
+    });
+  }
+    </script>
+  </head>
+
+  <body onload=init()>
+
+  	<div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="index.html"><img src="Assets/Logo.png" alt="logo" width="230"/></a>
+          <div class="nav-collapse collapse">
+            <ul class="nav pull-right">
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Account <b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                  <li class="Active"><a href="addfood.html">Add Food</a></li>
+                  <li><a href="edit_foods.html">Edit Current Foods</a></li>
+                  <li><a href="index.html" onclick=logout()>Logout </a></li>
+                </ul>
+              </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid content">
+    <div class="form">
+    
+    <h1 class="pageTitle"> Edit Your Dish </h1>
+    <div id="err_mess"></div>
+    <div class="g-signin2 hide-but" data-onsuccess="onSignIn"></div>
+    <p> Name:  <input type= "text" id="dishname" name="dishname" required/> </p>
+    <p> Image: 
+        <!--<form id="fileupload" name="fileupload" enctype="multipart/form-data" method="post">-->
+          <fieldset>
+            <input type="file" name="fileselect" id="fileselect"></input>
+            <a href="#" id="uploadbutton" class="btn" title="Upload File" data-toggle="popover">Upload File</a>
+          </fieldset>
+    <p> Price: <input id="dishprice" name="dishprice" required/></p>
+    <p> Tags: <label class="checkbox" id="foodtags"> <input type="checkbox" id="Savory"> Savory </label> </p>
+    <p> <label class="checkbox"> <input name="tags" type="checkbox" id="Sweet"> Sweet </label> </p>
+    <p> <label class="checkbox"> <input name="tags" type="checkbox" id="Spicy"> Spicy </label> </p>
+    <p> <label class="checkbox"> <input name="tags" type="checkbox" id="Fruity"> Fruity </label> </p>
+    <p> <label class="checkbox"> <input name="tags" type="checkbox" id="Vegetarian"> Vegetarian </label> </p>
+    <p> <label class="checkbox"> <input name="tags" type="checkbox" id="Vegan"> Vegan </label> </p>
+    <p> <label class="checkbox"> <input name="tags" type="checkbox" id="Other"> Other: </label> 
+      <input type="text" id="otherbox"> </p>
+    <input type="hidden" name="picref" value="none" id="picref"/>
+    <!-- <input type="hidden" name="rest_name" value="none" id="rest"/> -->
+    <button class="submit" onclick=formclick()>Update Dish!</button>
+
+    </div><!--/.container-fluid -->
+	</div>
+    <script src="http://code.jquery.com/jquery.js"></script>
+
+    <!--Source: https://www.parse.com/questions/uploading-files-to-parse-using-javascript-and-the-rest-api-->
+    <script type="text/javascript">
+      $(function() {
+        var file;
+
+        // Set an event listener on the Choose File field.
+        $('#fileselect').bind("change", function(e) {
+          var files = e.target.files || e.dataTransfer.files;
+          // Our file var now holds the selected file
+          file = files[0];
+        });
+
+        // This function is called when the user clicks on Upload to Parse. It will create the REST API request to upload this image to Parse.
+        $('#uploadbutton').click(function() {
+          if(file==undefined){
+            $("#uploadbutton").popover({trigger:"click",content:"No picture selected."});
+            $("#uploadbutton").popover('toggle');
+          }else{
+          var serverUrl = 'https://api.parse.com/1/files/' + file.name;
+
+          $.ajax({
+            type: "POST",
+            beforeSend: function(request) {
+              request.setRequestHeader("X-Parse-Application-Id", 'HszfqWOtrUQCzl2jTLp0lVyVng41AFsgLh5KCcOa');
+              request.setRequestHeader("X-Parse-REST-API-Key", 'lxa7tNqpPlm66xkeNlWW5Mbg7Cv6PKn7rqlhqjU9');
+              request.setRequestHeader("Content-Type", file.type);
+            },
+            url: serverUrl,
+            data: file,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+              document.getElementById('picref').value=data.url;
+              picref=data.url;
+              alert("Photo successfully uploaded!");
+            },
+            error: function(data) {
+              var obj = jQuery.parseJSON(data);
+              alert(obj.error);
+            }
+          });
+        }
+        });
+      });
+
+function formclick(){
+  var auth2 = gapi.auth2.getAuthInstance();
+  var gid = 'none';
+      if (auth2.isSignedIn.get()) {
+        gid = auth2.currentUser.get().getBasicProfile().getId();
+      }
+  if (isRegistered() == "NotRegistered") {
+    alert("You must register before editing a food.");
+    window.location.replace('register.html');
+  } else if(document.getElementById('picref').value=='none'){
+    alert("You must upload a photo to continue");
+  }else if (document.getElementById('dishname').value == '') {
+    alert("You must upload a dish name to continue");
+  }else if (document.getElementById('dishprice').value == '') {
+    alert("You must upload a price to continue");
+  }else{
+    var request =  new XMLHttpRequest();
+    var url = 'http://feedme-comp20.herokuapp.com/addfood';
+    var param = "_id=" + dish_id + "&foodname=" + document.getElementById('dishname').value + "&picref=" +document.getElementById('picref').value+"&price="+document.getElementById('dishprice').value+"&savory="+document.getElementById('Savory').checked+"&sweet="+document.getElementById('Sweet').checked+"&spicy="+document.getElementById('Spicy').checked+"&fruity="+document.getElementById('Fruity').checked+"&vegetarian="+document.getElementById('Vegetarian').checked+"&vegan="+document.getElementById('Vegan').checked+"&other="+document.getElementById('otherbox').value+"&googleid="+gid;
+    request.open("POST", url, true);
+
+    request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    request.send(param);
+    request.onreadystatechange = function(){
+      if(request.readyState == 4 && request.status == 200){
+        alert("Thank you, your food has been successfully updated!");
+        window.location.replace('edit_foods.html');
+      }
+    };
+  }
+}
+
+    </script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+  </body>
+</html>
